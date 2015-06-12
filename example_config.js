@@ -16,7 +16,11 @@ module.exports = {
 		less: {
 			entry: 'my-component.less',
 			path: 'less'
-		}
+		},
+    sass: {
+      entry: 'my-component.scss',
+      path: 'sass'
+    }
 	},
 
 	example: {
@@ -31,6 +35,9 @@ module.exports = {
 		],
 		less: [
 			'app.less'
-		]
+		],
+    sass: [
+      'app.scss'
+    ]
 	}
 };

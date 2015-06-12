@@ -6,6 +6,7 @@ var connect = require('gulp-connect');
 var del = require('del');
 var gutil = require('gulp-util');
 var less = require('gulp-less');
+var sass = require('gulp-sass');
 var merge = require('merge-stream');
 var shim = require('browserify-shim');
 var source = require('vinyl-source-stream');
@@ -126,38 +127,56 @@ module.exports = function (gulp, config) {
 	});
 
 	gulp.task('build:example:css', function () {
-		if (!config.example.less) return;
+		if (!config.example.less && !config.example.sass) return;
 
-		return gulp.src(config.example.src + '/' + config.example.less)
-			.pipe(less())
-			.pipe(gulp.dest(config.example.dist))
-			.pipe(connect.reload());
+    if (config.example.less) {
+  		return gulp.src(config.example.src + '/' + config.example.less)
+  			.pipe(less())
+  			.pipe(gulp.dest(config.example.dist))
+  			.pipe(connect.reload());
+    } else {
+      return gulp.src(config.example.src + '/' + config.example.sass)
+        .pipe(sass())
+        .pipe(gulp.dest(config.example.dist))
+        .pipe(connect.reload());
+    }
 	});
 
 	gulp.task('build:examples', [
 		'build:example:files',
-		'build:example:css',
+    'build:example:less:css',
+		'build:example:sass:css',
 		'build:example:scripts'
 	]);
 
 	gulp.task('watch:examples', [
 		'build:example:files',
-		'build:example:css'
+    'build:example:less:css',
+		'build:example:sass:css'
 	], function () {
 		buildExampleScripts(true)();
 		gulp.watch(config.example.files.map(function (i) {
 			return config.example.src + '/' + i;
 		}), ['build:example:files']);
 
-		var watchLESS = [];
-		if (config.example.less) {
-			watchLESS.push(config.example.src + '/' + config.example.less);
-		}
+    var watchLESS = [];
+    if (config.example.less) {
+      watchLESS.push(config.example.src + '/' + config.example.less);
+    }
 
 		if (config.component.less && config.component.less.path) {
 			watchLESS.push(config.component.less.path + '/**/*.less');
 		}
+    gulp.watch(watchLESS, ['build:example:less:css']);
 
-		gulp.watch(watchLESS, ['build:example:css']);
+    var watchSass = [];
+    if (config.example.sass) {
+      watchSass.push(config.example.src + '/' + config.example.sass);
+    }
+
+    if (config.component.sass && config.component.sass.path) {
+      watchSass.push(config.component.sass.path + '/**/*.{sass, scss}');
+    }
+		gulp.watch(watchSass, ['build:example:sass:css']);
 	});
 };
